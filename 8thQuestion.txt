@@ -1,0 +1,87 @@
+8th Question:
+Implement the following
+    1. User Singup
+    2. User SingIn
+    3. Forgot password
+    4. API Authentication & Authorization
+    5. RBAC
+
+
+User Signup:
+// UserController.java
+@RestController
+@RequestMapping("/api/user")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    @PostMapping("/signup")
+    public ResponseEntity<String> signup(@RequestBody UserDto userDto) {
+        userService.signup(userDto);
+        return ResponseEntity.ok("User registered successfully");
+    }
+}
+// UserService.java
+public interface UserService {
+
+    void signup(UserDto userDto);
+}
+// UserServiceImpl.java
+@Service
+public class UserServiceImpl implements UserService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Override
+    public void signup(UserDto userDto) {
+        // Your implementation to save user to the database
+    }
+}
+
+User SignIn:
+// SecurityConfig.java
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
+
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+API Authentication & Authorization:
+// SecurityConfig.java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+    http
+        .authorizeRequests()
+            .antMatchers("/api/public/**").permitAll()
+            .antMatchers("/api/private/**").authenticated()
+            .and()
+        .httpBasic();
+}
+
+RBAC (Role-Based Access Control):
+// UserController.java
+@GetMapping("/admin")
+@PreAuthorize("hasRole('ADMIN')")
+public ResponseEntity<String> adminEndpoint() {
+    return ResponseEntity.ok("Admin endpoint accessed");
+}
+
+@GetMapping("/user")
+@PreAuthorize("hasRole('USER')")
+public ResponseEntity<String> userEndpoint() {
+    return ResponseEntity.ok("User endpoint accessed");
+}
+
+
